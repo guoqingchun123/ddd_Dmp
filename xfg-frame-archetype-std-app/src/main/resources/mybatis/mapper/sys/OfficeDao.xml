@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xunfang.mmdp.modules.sys.dao.OfficeDao">
+
+    <sql id="officeColumns">
+        a
+        .
+        id
+        ,
+		a.parent_id AS "parent.id",
+		a.parent_ids,
+		a.area_id AS
+		"area.id",
+		a.code,
+		a.name,
+		a.sort,
+		a.type,
+		a.grade,
+		a.address,
+		a.zip_code,
+		a.master,
+		a.phone,
+		a.fax,
+		a.email,
+		a.remarks,
+		a.create_by AS "createBy.id",
+		a.create_date,
+		a.update_by AS
+		"updateBy.id",
+		a.update_date,
+		a.del_flag,
+		a.useable AS useable,
+		a.primary_person AS "primaryPerson.id",
+		a.deputy_person AS
+		"deputyPerson.id",
+		p.name AS "parent.name",
+		ar.name AS "area.name",
+		ar.parent_ids AS "area.parentIds",
+		pp.name AS "primaryPerson.name",
+		dp.name AS "deputyPerson.name",
+		bs.name AS "belongSubject",
+		a.virtualName AS "virtualName"
+    </sql>
+    <sql id="officeColumns1">
+        a
+        .
+        id
+        ,
+		a.parent_id AS "parent.id",
+		a.parent_ids,
+		a.area_id AS
+		"area.id",
+		a.code,
+		a.name,
+		a.sort,
+		a.type,
+		a.grade,
+		a.address,
+		a.zip_code,
+		a.master,
+		a.phone,
+		a.fax,
+		a.email,
+		a.remarks,
+		a.create_by AS "createBy.id",
+		a.create_date,
+		a.update_by AS
+		"updateBy.id",
+		a.update_date,
+		a.del_flag,
+		a.useable AS useable,
+		a.primary_person AS "primaryPerson.id",
+		a.deputy_person AS
+		"deputyPerson.id",
+		bs.name AS "belongSubject"
+
+    </sql>
+    <sql id="officeJoins">
+        LEFT JOIN sys_office p ON p.id = a.parent_id
+		LEFT JOIN sys_area ar ON ar.id = a.area_id
+		LEFT JOIN SYS_USER pp ON pp.id = a.primary_person
+		LEFT JOIN SYS_USER dp ON dp.id = a.deputy_person
+	    LEFT JOIN sys_belong_subject bs ON bs.id = a.belongSubject
+    </sql>
+
+    <select id="get" resultType="Office">
+        SELECT
+        <include refid="officeColumns"/>
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        WHERE a.id = #{id}
+    </select>
+
+
+    <select id="getByVirtualParent" resultType="Office">
+        SELECT
+        a.id,
+        IFNULL(v.virtual_parent_office_id,a.parent_id) AS "parent.id",
+        a.parent_ids,
+        a.area_id AS
+        "area.id",
+        a.code,
+        a.name,
+        a.sort,
+        a.type,
+        a.grade,
+        a.address,
+        a.zip_code,
+        a.master,
+        a.phone,
+        a.fax,
+        a.email,
+        a.remarks,
+        a.create_by AS "createBy.id",
+        a.create_date,
+        a.update_by AS
+        "updateBy.id",
+        a.update_date,
+        a.del_flag,
+        a.useable AS useable,
+        a.primary_person AS "primaryPerson.id",
+        a.deputy_person AS
+        "deputyPerson.id",
+        p.name AS "parent.name",
+        ar.name AS "area.name",
+        ar.parent_ids AS "area.parentIds",
+        pp.name AS "primaryPerson.name",
+        dp.name AS "deputyPerson.name"
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        left join sys_virtual_parent_office v on v.office_id=a.id
+        WHERE a.id = #{id}
+    </select>
+
+
+    <select id="getOfficeByName" resultType="Office">
+        SELECT
+        <include refid="officeColumns"/>
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        WHERE a.name = #{name}
+    </select>
+
+
+    <select id="getOfficeByCode" resultType="Office">
+        SELECT
+        <include refid="officeColumns"/>
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        WHERE a.code=#{code}
+    </select>
+
+
+    <select id="findList" resultType="Office">
+        SELECT
+        <include refid="officeColumns"/>
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        WHERE a.del_flag = #{DEL_FLAG_NORMAL}
+        <!-- 数据范围过滤 -->
+        ${sqlMap.dsf}
+        OR a.id = #{currentUser.office.id}
+        Or a.primary_person = #{currentUser.id}
+        Or a.deputy_person = #{currentUser.id}
+        ORDER BY a.code
+    </select>
+
+
+    <select id="findUserOfficeList" resultType="Office" parameterType="User">
+        SELECT
+        <include refid="officeColumns"/>
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        WHERE a.del_flag = #{DEL_FLAG_NORMAL}
+        AND( a.primary_person = #{id}
+        OR a.deputy_person = #{id})
+        ORDER BY a.code
+    </select>
+
+    <select id="getListByDeputyId" resultType="com.xunfang.mmdp.modules.sys.entity.Office">
+        SELECT
+        <include refid="officeColumns"/>
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        WHERE a.del_flag = '0'
+        AND a.primary_person != a.deputy_person
+        AND a.deputy_person = #{userid}
+        ORDER BY a.code
+    </select>
+
+
+    <select id="getTopgradeOfficeList" resultType="Office">
+        SELECT
+        <include refid="officeColumns"/>
+        from (
+        SELECT * from sys_office o
+        where o.del_flag='0' and o.USEABLE='1'
+        AND (
+        EXISTS (
+        SELECT
+        1
+        FROM
+        sys_role_office
+        WHERE
+        role_id in (
+        SELECT role_id from sys_user_role where user_id= #{id}
+        )
+        AND office_id = o.id
+        )
+        )
+        OR o.id = #{officeId}
+        OR o.primary_person= #{id}
+        OR o.deputy_person = #{id}
+        )a
+        <include refid="officeJoins"/>
+        where a.grade =(
+        SELECT MIN(CAST(grade AS SIGNED)) from sys_office o
+        where o.del_flag='0' and o.USEABLE='1'
+        AND (
+        EXISTS (
+        SELECT
+        1
+        FROM
+        sys_role_office
+        WHERE
+        role_id in (
+        SELECT role_id from sys_user_role where user_id= #{id}
+        )
+        AND office_id = o.id
+        )
+        )
+        OR o.id =#{officeId}
+        OR o.primary_person = #{id}
+        OR o.deputy_person = #{id}
+        )
+    </select>
+
+
+    <!-- 获取下拉选中的部门及其子部门 -->
+    <select id="findDropdownList" resultType="Office">
+        SELECT
+        <include refid="officeColumns"/>
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        WHERE
+        a.del_flag = '0'
+        <if test="id != null and id != ''">
+            AND a.id = #{id}
+        </if>
+        <if test="parentIds != null and parentIds != ''">
+            OR a.parent_ids like
+            <if test="dbName == 'oracle'">'%'||#{parentIds}||'%'</if>
+            <if test="dbName == 'mssql'">'%'+#{parentIds}+'%'</if>
+            <if test="dbName == 'mysql'">concat('%',#{parentIds},'%')</if>
+        </if>
+    </select>
+
+
+    <!-- 根据id获取父部门ids -->
+    <select id="findParentIdsById" resultType="Office">
+        SELECT
+        a.parent_ids
+        FROM sys_office a
+        WHERE
+        1=1
+        <if test="id != null and id != ''">
+            and a.id = #{id}
+        </if>
+    </select>
+
+
+    <select id="findAllList" resultType="Office">
+        SELECT
+        <include refid="officeColumns"/>
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        WHERE a.del_flag = #{DEL_FLAG_NORMAL}
+        and a.USEABLE = 1
+        ORDER BY a.code
+    </select>
+
+    <select id="findByParentIdsLike" resultType="Office">
+        SELECT
+        <include refid="officeColumns"/>
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        WHERE a.del_flag = #{DEL_FLAG_NORMAL} AND a.parent_ids LIKE
+        #{parentIds}
+        ORDER BY a.code
+    </select>
+
+    <insert id="insert">
+        INSERT INTO sys_office(id,
+                               parent_id,
+                               parent_ids,
+                               area_id,
+                               code,
+                               name,
+                               sort,
+                               type,
+                               grade,
+                               address,
+                               zip_code,
+                               master,
+                               phone,
+                               fax,
+                               email,
+                               create_by,
+                               create_date,
+                               update_by,
+                               update_date,
+                               remarks,
+                               del_flag,
+                               useable,
+                               primary_person,
+                               deputy_person)
+        VALUES (#{id},
+                #{parent.id},
+                #{parentIds},
+                #{area.id},
+                #{code},
+                #{name},
+                #{sort},
+                #{type},
+                #{grade},
+                #{address},
+                #{zipCode},
+                #{master},
+                #{phone},
+                #{fax},
+                #{email},
+                #{createBy.id},
+                #{createDate},
+                #{updateBy.id},
+                #{updateDate},
+                #{remarks},
+                #{delFlag},
+                #{useable},
+                #{primaryPerson.id},
+                #{deputyPerson.id})
+    </insert>
+
+    <update id="update">
+        UPDATE sys_office
+        SET parent_id     = #{parent.id},
+            parent_ids    = #{parentIds},
+            area_id       = #{area.id},
+            code          = #{code},
+            name          = #{name},
+            type          = #{type},
+            grade         = #{grade},
+            address       = #{address},
+            zip_code      = #{zipCode},
+            master        = #{master},
+            phone         = #{phone},
+            fax           = #{fax},
+            email         = #{email},
+            update_by     = #{updateBy.id},
+            update_date   = #{updateDate},
+            remarks       = #{remarks},
+            useable=#{useable},
+            primary_person=#{primaryPerson.id},
+            deputy_person=#{deputyPerson.id}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateParentIds">
+        UPDATE sys_office
+        SET parent_id  = #{parent.id},
+            parent_ids = #{parentIds}
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete">
+        UPDATE sys_office SET
+        del_flag = #{DEL_FLAG_DELETE}
+        WHERE id = #{id} OR parent_ids LIKE
+        <if test="dbName == 'oracle'">'%,'||#{id}||',%'</if>
+        <if test="dbName == 'mssql'">'%,'+#{id}+',%'</if>
+        <if test="dbName == 'mysql'">CONCAT('%,', #{id}, ',%')</if>
+    </update>
+
+
+    <select id="findAllOfficeList" resultType="Office">
+        SELECT
+        <include refid="officeColumns"/>
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        WHERE a.del_flag = '0'
+        ORDER BY a.code
+    </select>
+
+
+    <select id="getOfficeById" resultType="Office">
+        select
+        <include refid="officeColumns1"/>
+        from sys_office a
+        <include refid="officeJoins"/>
+        where a.id = #{id}
+    </select>
+
+    <!-- 获取他的下级部门 （只包含一级） -->
+    <select id="getXJOffice" resultType="Office">
+        SELECT
+        <include refid="officeColumns"/>
+        FROM sys_office a
+        <include refid="officeJoins"/>
+        WHERE a.parent_id = #{id} and a.del_flag = #{DEL_FLAG_NORMAL} and a.USEABLE ='1'
+    </select>
+
+    <!-- 获取所有的部门信息 APP -->
+    <select id="getOfficeListAPP" resultType="Office">
+        select s.id,
+               s.name,
+               count(s.name) count
+        from (select o.* from sys_office o
+            left join sys_user u on u.office_id = o.id where u.del_flag = '0' and
+            o.del_flag = '0') s
+        group by s.id
+    </select>
+
+    <!-- 获取所在部门及下属部门信息 APP -->
+    <select id="getOfficeListWithPowerAPP" resultType="Office">
+        select s.id,
+               s.name,
+               count(s.name) count
+        from (select o.* from sys_office o
+            left join sys_user u on u.office_id = o.id where
+            u.del_flag = '0' and
+            o.del_flag = '0' and
+            o.parent_ids like CONCAT('%,', #{id}, ',%')
+            or o.id=#{id}
+
+            ) s
+        group by s.id
+    </select>
+
+    <select id="getVirtualList" resultType="Office">
+        select t.id        AS "id",
+               t.parent_id AS "parent.id",
+               t.name,
+               t.code
+        from sys_virtual_office t
+    </select>
+    <select id="getVirtualoffice" resultType="Office">
+        select t.id        AS "id",
+               t.parent_id AS "parent.id",
+               t.name,
+               t.code
+        from sys_virtual_office t
+        where t.id = #{id}
+    </select>
+    <select id="belongJYSYBFlag" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM sys_office
+        WHERE (
+                FIND_IN_SET('193', parent_ids) OR id = '193'
+            )
+          AND id = #{officeId}
+    </select>
+    <select id="belongZQSYBFlag" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM sys_office
+        WHERE (
+            FIND_IN_SET('194', parent_ids) OR id = '194'
+            )
+          AND id = #{officeId}
+    </select>
+    <select id="belongHWYSYBFlag" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM sys_office
+        WHERE (
+                FIND_IN_SET('ce92bd1d76624a97afc45fdd72f6822d', parent_ids) OR
+                id = 'ce92bd1d76624a97afc45fdd72f6822d'
+            )
+          AND id = #{officeId}
+    </select>
+
+    <select id="getCastSubject" resultType="string">
+        select sys_belong_subject.fullname as subjectName
+        from sys_office
+        left join sys_belong_subject on sys_office.belongSubject=sys_belong_subject.id
+        where sys_office.code=#{id}
+    </select>
+
+</mapper>

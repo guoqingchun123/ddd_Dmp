@@ -23,12 +23,36 @@
             <artifactId>redisson-spring-boot-starter</artifactId>
         </dependency>
 
+
         <!-- 系统模块 -->
         <dependency>
             <groupId>cn.bugstack</groupId>
             <artifactId>xfg-frame-archetype-std-domain</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.xunfang.mmdp</groupId>
+            <artifactId>framework</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.python</groupId>
+            <artifactId>jython-standalone</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+
     </dependencies>
+
+
 
     <build>
         <finalName>xfg-frame-archetype-std-infrastructure</finalName>

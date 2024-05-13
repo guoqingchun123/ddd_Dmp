@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xunfeng.cucustomer.infrastructure.dao.CuCustomerLinkmanDao">
+
+    <!-- 客户联系人信息字段 -->
+	<sql id="cuCustomerLinkmanColumns">
+		a.id AS "id",
+		a.cu_customer_id AS "cuCustomerId",
+		a.name AS "name",
+		a.dept AS "dept",
+		a.duty AS "duty",
+		a.ismain AS "ismain",
+		a.sex AS "sex",
+		a.officephone AS "officephone",
+		a.mobile AS "mobile",
+		a.email AS "email",
+		a.position AS "position",
+		a.age AS "age",
+		a.workaddress AS "workaddress",
+		a.full_address AS "fullAddress",
+		a.postcode AS "postcode",
+		a.familyaddress AS "familyaddress",
+		a.fax AS "fax",
+		a.familyphone AS "familyphone",
+		a.instantcomm AS "instantcomm",
+		a.other AS "other",
+		a.remark AS "remark",
+		a.create_by AS "createBy.id",
+		a.create_date,
+		a.update_by AS "updateBy.id",
+		a.update_date
+	</sql>
+
+	<sql id="cuCustomerLinkmanJoins">
+	</sql>
+
+    <!-- 根据主键获取客户联系人信息 -->
+	<select id="get" resultType="CuCustomerLinkman">
+		SELECT
+			<include refid="cuCustomerLinkmanColumns"/>
+		FROM cu_customer_linkman a
+		<include refid="cuCustomerLinkmanJoins"/>
+		WHERE a.id = #{id}
+	</select>
+
+	<!-- 获取客户联系人信息列表(带分页) -->
+	<select id="findList" resultType="CuCustomerLinkman">
+		SELECT
+			<include refid="cuCustomerLinkmanColumns"/>
+		FROM cu_customer_linkman a
+		<include refid="cuCustomerLinkmanJoins"/>
+		<where>
+			<if test="name != null and name != ''">
+				AND a.name LIKE
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				limit #{startIndex},#{pageSize}
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 获取客户联系人信息数量 -->
+	<select id="findList2Count" resultType="Integer">
+        SELECT
+            count(1)
+        FROM cu_customer_linkman a
+        <include refid="cuCustomerLinkmanJoins"/>
+        <where>
+            <if test="name != null and name != ''">
+                AND a.name LIKE
+                    <if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+                    <if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+                    <if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+            </if>
+        </where>
+    </select>
+
+	<!-- 获取客户联系人信息列表 -->
+	<select id="findAllList" resultType="CuCustomerLinkman">
+		SELECT
+			<include refid="cuCustomerLinkmanColumns"/>
+		FROM cu_customer_linkman a
+		<include refid="cuCustomerLinkmanJoins"/>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 插入客户联系人信息 -->
+	<insert id="insert">
+		INSERT INTO cu_customer_linkman(
+			id,
+			cu_customer_id,
+			name,
+			dept,
+			duty,
+			ismain,
+			sex,
+			officephone,
+			mobile,
+			email,
+			position,
+			age,
+			workaddress,
+			full_address,
+			postcode,
+			familyaddress,
+			fax,
+			familyphone,
+			instantcomm,
+			other,
+			remark,
+			create_by,
+		    create_date,
+		    update_by,
+		    update_date
+		) VALUES (
+			#{id},
+			#{cuCustomerId},
+			#{name},
+			#{dept},
+			#{duty},
+			#{ismain},
+			#{sex},
+			#{officephone},
+			#{mobile},
+			#{email},
+			#{position},
+			#{age},
+			#{workaddress},
+			#{fullAddress},
+			#{postcode},
+			#{familyaddress},
+			#{fax},
+			#{familyphone},
+			#{instantcomm},
+			#{other},
+			#{remark},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate}
+		)
+	</insert>
+
+	<!-- 更新客户联系人信息 -->
+	<update id="update">
+		UPDATE cu_customer_linkman SET
+			cu_customer_id = #{cuCustomerId},
+			name = #{name},
+			dept = #{dept},
+			duty = #{duty},
+			ismain = #{ismain},
+			sex = #{sex},
+			officephone = #{officephone},
+			mobile = #{mobile},
+			email = #{email},
+			position = #{position},
+			age = #{age},
+			workaddress = #{workaddress},
+			full_address = #{fullAddress},
+			postcode = #{postcode},
+			familyaddress = #{familyaddress},
+			fax = #{fax},
+			familyphone = #{familyphone},
+			instantcomm = #{instantcomm},
+			other = #{other},
+			remark = #{remark},
+			create_by = #{createBy.id},
+		    create_date = #{createDate},
+		    update_by = #{updateBy.id},
+		    update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+
+	<!-- 根据主键删除客户联系人信息 -->
+	<delete id="delete">
+		DELETE FROM cu_customer_linkman
+		WHERE id = #{id}
+	</delete>
+
+	<!-- 根据客户ID查询客户联系人信息 -->
+	<select id="getByCustomerId" resultType="CuCustomerLinkmanEntity">
+		SELECT
+			<include refid="cuCustomerLinkmanColumns"/>
+		FROM cu_customer_linkman a
+		<include refid="cuCustomerLinkmanJoins"/>
+		WHERE a.cu_customer_id = #{cuCustomerId}
+	</select>
+
+	<!-- 批量插入客户联系人信息 -->
+	<insert id="batchInsert" parameterType="java.util.List">
+		INSERT INTO cu_customer_linkman(
+			id,
+			cu_customer_id,
+			name,
+			dept,
+			duty,
+			ismain,
+			sex,
+			officephone,
+			mobile,
+			email,
+			position,
+			age,
+			workaddress,
+			full_address,
+			postcode,
+			familyaddress,
+			fax,
+			familyphone,
+			instantcomm,
+			other,
+			remark,
+			create_by,
+		    create_date,
+		    update_by,
+		    update_date
+		) VALUES
+	  <foreach collection="list" index ="index" item ="item" separator=",">
+		(
+			#{item.id},
+			#{item.cuCustomerId},
+			#{item.name},
+			#{item.dept},
+			#{item.duty},
+			#{item.ismain},
+			#{item.sex},
+			#{item.officephone},
+			#{item.mobile},
+			#{item.email},
+			#{item.position},
+			#{item.age},
+			#{item.workaddress},
+			#{item.fullAddress},
+			#{item.postcode},
+			#{item.familyaddress},
+			#{item.fax},
+			#{item.familyphone},
+			#{item.instantcomm},
+			#{item.other},
+			#{item.remark},
+			#{item.createBy.id},
+			#{item.createDate},
+			#{item.updateBy.id},
+			#{item.updateDate}
+		)
+	</foreach>
+	</insert>
+
+	<!-- 批量更新客户联系人信息 -->
+	<update id="batchUpdate" parameterType="java.util.List">
+	    update cu_customer_linkman
+	    <trim prefix="set" suffixOverrides=",">
+	        <trim prefix="cu_customer_id =case" suffix="end,">
+	            <foreach collection="list" item="i" index="index">
+	                <if test="i.cuCustomerId!=null">
+	                    when id=#{i.id} then #{i.cuCustomerId}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" name =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.name!=null">
+	                    when id=#{i.id} then #{i.name}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" dept =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.dept!=null">
+	                    when id=#{i.id} then #{i.dept}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" duty =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.duty!=null">
+	                    when id=#{i.id} then #{i.duty}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" ismain =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.ismain!=null">
+	                    when id=#{i.id} then #{i.ismain}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" sex =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.sex!=null">
+	                    when id=#{i.id} then #{i.sex}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" officephone =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.officephone!=null">
+	                    when id=#{i.id} then #{i.officephone}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" mobile =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.mobile!=null">
+	                    when id=#{i.id} then #{i.mobile}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" email =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.email!=null">
+	                    when id=#{i.id} then #{i.email}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" position =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.position!=null">
+	                    when id=#{i.id} then #{i.position}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" age =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.age!=null">
+	                    when id=#{i.id} then #{i.age}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" workaddress =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.workaddress!=null">
+	                    when id=#{i.id} then #{i.workaddress}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" full_address =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.fullAddress!=null">
+	                    when id=#{i.id} then #{i.fullAddress}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" postcode =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.postcode!=null">
+	                    when id=#{i.id} then #{i.postcode}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" familyaddress =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.familyaddress!=null">
+	                    when id=#{i.id} then #{i.familyaddress}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" fax =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.fax!=null">
+	                    when id=#{i.id} then #{i.fax}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" familyphone =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.familyphone!=null">
+	                    when id=#{i.id} then #{i.familyphone}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" instantcomm =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.instantcomm!=null">
+	                    when id=#{i.id} then #{i.instantcomm}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" other =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.other!=null">
+	                    when id=#{i.id} then #{i.other}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" remark =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.remark!=null">
+	                    when id=#{i.id} then #{i.remark}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" create_by =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.createBy!=null">
+	                    when id=#{i.id} then #{i.createBy.id}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" create_date =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.createDate!=null">
+	                    when id=#{i.id} then #{i.createDate}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" update_by =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.updateBy!=null">
+	                    when id=#{i.id} then #{i.updateBy.id}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" update_date =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.updateDate!=null">
+	                    when id=#{i.id} then #{i.updateDate}
+	                </if>
+	            </foreach>
+	        </trim>
+	    </trim>
+	    where
+	    <foreach collection="list" separator="or" item="i" index="index">
+	        id=#{i.id}
+	    </foreach>
+	</update>
+
+	<!-- 根据客户ID删除客户联系人信息 -->
+	<delete id="deleteByCustomerId">
+		DELETE FROM cu_customer_linkman
+		WHERE cu_customer_id = #{cuCustomerId}
+	</delete>
+
+</mapper>

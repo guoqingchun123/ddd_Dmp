@@ -43,6 +43,33 @@
             <groupId>cn.bugstack</groupId>
             <artifactId>xfg-frame-archetype-std-types</artifactId>
         </dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+		</dependency>
+        <dependency>
+            <groupId>cn.bugstack</groupId>
+            <artifactId>xfg-frame-archetype-std-infrastructure</artifactId>
+        </dependency>
+
+        <!--客户模块添加依赖-->
+        <dependency>
+            <groupId>com.xunfang.mmdp</groupId>
+            <artifactId>framework</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.python</groupId>
+            <artifactId>jython-standalone</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.bugstack</groupId>
+            <artifactId>xfg-frame-archetype-std-app</artifactId>
+            <version>1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

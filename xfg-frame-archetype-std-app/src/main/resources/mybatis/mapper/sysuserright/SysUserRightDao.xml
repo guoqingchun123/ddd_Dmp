@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xunfeng.cucustomer.infrastructure.dao.SysUserRightDao">
+
+	<sql id="sysUserRightColumns">
+		a.id AS "id",
+		a.user_id AS "user.id",
+		a.right_id AS "rightId",
+		a.start_date AS "startDate",
+		a.end_date AS "endDate",
+		a.status AS "status",
+		a.flag AS "flag",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.del_flag AS "delFlag",
+		a.remark AS "remark",
+		u2.name AS "user.name"
+	</sql>
+
+	<sql id="sysUserRightJoins">
+		LEFT JOIN sys_user u2 ON u2.id = a.user_id
+	</sql>
+
+	<select id="get" resultType="SysUserRight">
+		SELECT
+			<include refid="sysUserRightColumns"/>
+		FROM sys_user_right a
+		<include refid="sysUserRightJoins"/>
+		WHERE a.id = #{id}
+	</select>
+
+	<select id="findList" resultType="SysUserRight">
+		SELECT
+			<include refid="sysUserRightColumns"/>
+		FROM sys_user_right a
+		<include refid="sysUserRightJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="user != null and user.id != null and user.id != ''">
+				AND a.user_id = #{user.id}
+			</if>
+			<if test="rightId != null and rightId != ''">
+				AND a.right_id = #{rightId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+				limit #{startIndex},#{pageSize}
+			</otherwise>
+		</choose>
+	</select>
+
+
+	<select id="findList2Count" resultType="Integer">
+        SELECT
+            count(1)
+        FROM sys_user_right a
+        <include refid="sysUserRightJoins"/>
+        <where>
+            a.del_flag = #{DEL_FLAG_NORMAL}
+            <if test="user != null and user.id != null and user.id != ''">
+                AND a.user_id = #{user.id}
+            </if>
+            <if test="rightId != null and rightId != ''">
+                AND a.right_id = #{rightId}
+            </if>
+        </where>
+    </select>
+
+	<select id="findAllList" resultType="SysUserRight">
+		SELECT
+			<include refid="sysUserRightColumns"/>
+		FROM sys_user_right a
+		<include refid="sysUserRightJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<insert id="insert">
+		INSERT INTO sys_user_right(
+			id,
+			user_id,
+			right_id,
+			start_date,
+			end_date,
+			status,
+			flag,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			del_flag,
+			remark
+		) VALUES (
+			#{id},
+			#{user.id},
+			#{rightId},
+			#{startDate},
+			#{endDate},
+			#{status},
+			#{flag},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{delFlag},
+			#{remark}
+		)
+	</insert>
+
+	<update id="update">
+		UPDATE sys_user_right SET
+			user_id = #{user.id},
+			right_id = #{rightId},
+			start_date = #{startDate},
+			end_date = #{endDate},
+			status = #{status},
+			flag = #{flag},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remark = #{remark}
+		WHERE id = #{id}
+	</update>
+
+	<update id="delete">
+		UPDATE sys_user_right SET
+			del_flag = #{DEL_FLAG_DELETE},
+			update_by = #{updateBy.id},
+            update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+
+	<select id="getRightListByUserId" parameterType="java.util.Map" resultType="SysUserRight">
+	    SELECT
+            <include refid="sysUserRightColumns"/>
+        FROM sys_user_right a
+        <include refid="sysUserRightJoins"/>
+        <where>
+            a.del_flag = #{DEL_FLAG_NORMAL}
+            AND a.status = ${STATUS_VALIDATE}
+            AND a.user_id = #{userId}
+            AND now() between IFNULL(start_date,now()) and IFNULL(end_date,NOW())
+        </where>
+	</select>
+
+    <sql id="sysUserRightColumnsV2">
+        a.id AS "rightId",
+        a.item_type AS "itemType",
+        a.item_id AS "itemId"
+    </sql>
+
+	<sql id="userRightListByUserId">
+		select user_right_add.rightId AS "rightId",
+		user_right_add.itemType AS "itemType",
+		user_right_add.itemId  AS "itemId" from  (
+	    select  <include refid="sysUserRightColumnsV2"/> from sys_right_item a
+	        left join sys_user_right ur on a.id=ur.right_id
+	        left join sys_user  u  on u.id=ur.user_id
+	        where  a.del_flag = #{DEL_FLAG_NORMAL}
+	        and now() between ifnull(a.start_date, now()) and ifnull(a.end_date,now())
+	        and ur.status = #{STATUS_VALIDATE}
+	        and now() between ifnull(ur.start_date, now()) and ifnull(ur.end_date,now())
+	        and ur.flag='1'
+	        and u.id= #{userId}
+	    union
+	    select <include refid="sysUserRightColumnsV2"/>  from sys_right_item a
+	        left join sys_role_right rr on rr.right_id=a.id
+	        left join sys_role  r on r.id = rr.role_id
+	        where  a.del_flag = #{DEL_FLAG_NORMAL}
+	        and now() between ifnull(a.start_date, now()) and ifnull(a.end_date,now())
+	        and rr.status= #{STATUS_VALIDATE}
+	        and now() between ifnull(rr.start_date, now()) and ifnull(rr.end_date,now())
+	        and rr.flag='1'
+	        and r.id in (
+	            select id from  (
+	            select r.id from sys_role r
+	                 LEFT JOIN  sys_office o ON o.id = r.office_id
+	                 left join  sys_user_role ur on ur.role_id=r.id
+	                 LEFT JOIN sys_user u ON u.id = ur.user_id
+	             where  r.del_flag = #{DEL_FLAG_NORMAL}
+	                 AND r.useable='1'
+	                 and u.id=#{userId} and ur.status=${STATUS_VALIDATE}
+	                 and  now() between ifnull(ur.start_date, now()) and ifnull(ur.end_date, now())
+	                 and ur.flag='1'
+	            UNION
+	            select r.id from sys_role r
+	                LEFT JOIN  sys_office o ON o.id = r.office_id
+	                left  join  sys_group_role gr  on gr.role_id = r.id
+	                left JOIN   sys_user_group ugr on ugr.group_id=gr.group_id
+	                 LEFT JOIN sys_user u ON u.id = ugr.user_id
+	            where  r.del_flag =  #{DEL_FLAG_NORMAL}
+	                AND r.useable='1'
+	                and  gr.status= #{STATUS_VALIDATE}
+	                and u.id = #{userId}
+	                and now() between ifnull(gr.start_date, now()) and ifnull(gr.end_date, now())
+	            UNION
+	            select r.id from sys_role r
+	                LEFT JOIN  sys_office o ON o.id = r.office_id
+	                LEFT JOIN  sys_position_role pr  on pr.role_id=r.id
+	                left join hr_employee_position ep on ep.pos_id=pr.pos_id
+	                left join  sys_user u on u.no=ep.emp_no
+	            where r.del_flag =  #{DEL_FLAG_NORMAL}
+	                 AND r.useable='1'
+	                 and  u.id=#{userId}
+	                ) user_add_role  left join (
+	                select r.id from sys_role r
+	                 LEFT JOIN  sys_office o ON o.id = r.office_id
+	                 left join  sys_user_role ur on ur.role_id=r.id
+	                 LEFT JOIN sys_user u ON u.id = ur.user_id
+	                 where  r.del_flag = #{DEL_FLAG_NORMAL} AND r.useable='1'
+	                 and u.id=#{userId} and ur.status = #{STATUS_VALIDATE}
+	                 and  now() between ifnull(ur.start_date, now()) and ifnull(ur.end_date, now())
+	                 and ur.flag='0' )  user_del_role  using (id)
+	                 where user_del_role.id is null))
+	         user_right_add  left join (
+	                        select <include refid="sysUserRightColumnsV2"/> from sys_right_item a
+	                        left join sys_user_right ur on a.id=ur.right_id
+	                        left join sys_user  u  on u.id=ur.user_id
+	                        where  a.del_flag = #{DEL_FLAG_NORMAL}
+	                        and now() between ifnull(a.start_date, now()) and ifnull(a.end_date,now())
+	                        and ur.status=${STATUS_VALIDATE}
+	                        and now() between ifnull(ur.start_date, now()) and ifnull(ur.end_date,now())
+	                        and ur.flag='0'
+	                        and u.id=#{userId})
+	        user_right_del using (rightId)
+	        where user_right_del.rightId is null
+	</sql>
+
+    <select id="getRightListByUserIdV2" parameterType="java.util.Map" resultType="SysUserRight">
+        <include refid="userRightListByUserId" />
+	    <if test="itemType != null and itemType != ''">
+                AND user_right_add.itemType = #{itemType}
+        </if>
+    </select>
+
+
+    <sql id="sysDataScopeColumns">
+        a.id AS "id",
+        a.scope_name AS "scopeName",
+        a.scope_code AS "scopeCode",
+        a.scope_type AS "scopeType",
+        a.mudule_id AS "muduleId",
+        a.module_code AS "moduleCode",
+        a.menu_id AS "menuId",
+        a.menu_code AS "menuCode",
+        a.scope_value AS "scopeValue",
+        a.level AS "level",
+        a.description AS "description",
+        a.start_date AS "startDate",
+        a.end_date AS "endDate",
+        a.status AS "status",
+        a.create_by AS "createBy.id",
+        a.create_date AS "createDate",
+        a.update_by AS "updateBy.id",
+        a.update_date AS "updateDate",
+        a.del_flag AS "delFlag",
+        a.remark AS "remark"
+
+    </sql>
+    <select id="getUserDataScopeByUserId" parameterType="java.util.Map" resultType="SysDataScope">
+        select <include refid="sysDataScopeColumns" />
+        from sys_data_scope a  inner join (
+        <include refid="userRightListByUserId" />
+        <if test="itemType != null and itemType != ''">
+                AND user_right_add.itemType = #{itemType}
+        </if>
+        ) user_ds_right  on  user_ds_right.itemId = a.id
+		WHERE  a.adjustment_type = '1'
+    </select>
+	<select id="getReduceDataScopeByUserId"
+			resultType="com.xunfang.mmdp.modules.sysdatascope.entity.SysDataScope">
+		select <include refid="sysDataScopeColumns" />
+		from sys_data_scope a inner join (
+		<include refid="userRightListByUserId" />
+		<if test="itemType != null and itemType != ''">
+			AND user_right_add.itemType = #{itemType}
+		</if>
+		) user_ds_right  on  user_ds_right.itemId = a.id
+		WHERE  a.adjustment_type = '0'
+	</select>
+
+	<insert id="insertBatch">
+        INSERT INTO sys_user_right(
+            id,
+            user_id,
+            right_id,
+            start_date,
+            end_date,
+            status,
+            flag,
+            create_by,
+            create_date,
+            update_by,
+            update_date,
+            del_flag,
+            remark
+        ) VALUES
+           <foreach collection ="list" item="userRight" separator =",">
+            (#{userRight.id},
+            #{userRight.user.id},
+            #{userRight.rightId},
+            #{userRight.startDate},
+            #{userRight.endDate},
+            #{userRight.status},
+            #{userRight.flag},
+            #{userRight.createBy.id},
+            #{userRight.createDate},
+            #{userRight.updateBy.id},
+            #{userRight.updateDate},
+            #{userRight.delFlag},
+            #{userRight.remark})
+           </foreach>
+    </insert>
+
+	<update id="deleteUserRight">
+        UPDATE sys_user_right SET
+            del_flag = #{DEL_FLAG_DELETE},
+            status =  #{STATUS_INVALIDATE},
+            update_by = #{updateBy.id},
+            update_date = #{updateDate}
+        WHERE
+             user_id = #{user.id}
+             and right_id = #{rightId}
+    </update>
+
+</mapper>

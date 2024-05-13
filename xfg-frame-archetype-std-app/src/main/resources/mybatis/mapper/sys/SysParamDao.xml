@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xunfeng.cucustomer.infrastructure.dao.SysParamDao">
+
+	<sql id="sysParamColumns">
+		a.id AS "id",
+		a.paramid AS "paramid",
+		a.paramname AS "paramname",
+		a.paramvalue AS "paramvalue",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.status AS "status",
+		a.remarks AS "remarks"
+	</sql>
+
+	<sql id="sysParamJoins">
+	</sql>
+	<!-- 分页计数 -->
+	<select id="getCount" resultType="int">
+	SELECT count(1) FROM sys_param a
+	<where>
+	    <if test="paramid != null and paramid != ''">
+			AND a.paramid LIKE
+			<if test="dbName == 'oracle'">'%'||#{paramid}||'%'</if>
+			<if test="dbName == 'mssql'">'%'+#{paramid}+'%'</if>
+			<if test="dbName == 'mysql'">CONCAT('%', #{paramid}, '%')</if>
+		</if>
+		<if test="paramname != null and paramname != ''">
+			AND a.paramname LIKE
+			<if test="dbName == 'oracle'">'%'||#{paramname}||'%'</if>
+			<if test="dbName == 'mssql'">'%'+#{paramname}+'%'</if>
+			<if test="dbName == 'mysql'">CONCAT('%', #{paramname}, '%')</if>
+	   </if>
+	   <if test="paramids !=null and paramids !=''">
+			and a.paramid in
+			<foreach collection="paramids" index="index" item="item"
+				open="(" separator="," close=")">
+				'${item}'
+			</foreach>
+		</if>
+	 </where>
+	</select>
+	<!-- 保存 -->
+	<insert id="insertSysParam">
+	INSERT INTO sys_param(
+		id,
+		paramid,
+		paramname,
+		paramvalue,
+		create_by,
+		create_date,
+		update_by,
+		update_date,
+		status,
+		remarks
+		) VALUES (
+		#{id},
+		#{paramid},
+		#{paramname},
+		#{paramvalue},
+		#{createBy.id},
+		#{createDate},
+		#{updateBy.id},
+		#{updateDate},
+		#{status},
+		#{remarks}
+		)
+	</insert>
+	<!-- 查询最大id -->
+	<select id="selectMaxId" resultType="int">
+	 select max(id) from sys_param
+	</select>
+	<update id="update">
+		UPDATE sys_param SET
+		paramid = #{paramid},
+		paramname = #{paramname},
+		paramvalue = #{paramvalue},
+		update_by = #{updateBy.id},
+		update_date = #{updateDate},
+		status = #{status},
+		remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	<!-- 修改 -->
+	<update id="updateSysParam">
+		UPDATE sys_param SET
+		paramid = #{paramid},
+		paramname = #{paramname},
+		paramvalue = #{paramvalue},
+		update_by = #{updateBy.id},
+		update_date = #{updateDate},
+		<!-- status = #{status}, -->
+		remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+
+	<!-- 根据id查询单个 -->
+	<select id="getSysParamById" resultType="SysParam">
+		SELECT
+		<include refid="sysParamColumns" />
+		FROM sys_param a
+		WHERE a.id = #{id}
+	</select>
+
+	<select id="get" resultType="SysParam">
+		SELECT
+		<include refid="sysParamColumns" />
+		FROM sys_param a
+		<include refid="sysParamJoins" />
+		WHERE a.id = #{id}
+	</select>
+	<!-- 查询列表 -->
+	<select id="findList" resultType="SysParam">
+		SELECT
+		<include refid="sysParamColumns" />
+		FROM sys_param a
+		<include refid="sysParamJoins" />
+		<where>
+	        <if test="paramid != null and paramid != ''">
+				AND a.paramid LIKE
+				<if test="dbName == 'oracle'">'%'||#{paramid}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{paramid}+'%'</if>
+				<if test="dbName == 'mysql'">CONCAT('%', #{paramid}, '%')</if>
+			</if>
+			<if test="paramname != null and paramname != ''">
+				AND a.paramname LIKE
+				<if test="dbName == 'oracle'">'%'||#{paramname}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{paramname}+'%'</if>
+				<if test="dbName == 'mysql'">CONCAT('%', #{paramname}, '%')</if>
+			</if>
+			<if test="paramids !=null and paramids !=''">
+				and a.paramid in
+				<foreach collection="paramids" index="index" item="item"
+					open="(" separator="," close=")">
+					'${item}'
+				</foreach>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.id, a.update_date DESC
+			</otherwise>
+		</choose>
+		limit
+		#{startIndex},#{pageSize}
+	</select>
+	<!-- 删除参数信息 == 改变状态 -->
+	<update id="changeStatusSysParamById">
+		UPDATE sys_param a SET a.status = #{status}
+		WHERE  a.id = #{id}
+	</update>
+	<!-- 添加、修改时检验paramid是否存在 -->
+	<select id="checkParamId" resultType="int">
+	select count(1)  FROM sys_param a where a.paramid = #{paramid}
+	  <if test="id != null and id != ''">
+	    and <![CDATA[id!= #{id}]]>
+	  </if>
+	</select>
+
+	<select id="findAllList" resultType="SysParam">
+		SELECT
+		<include refid="sysParamColumns" />
+		FROM sys_param a
+		<include refid="sysParamJoins" />
+		<where>
+
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<insert id="insert">
+		INSERT INTO sys_param(
+		id,
+		paramid,
+		paramname,
+		paramvalue,
+		create_by,
+		create_date,
+		update_by,
+		update_date,
+		status,
+		remarks
+		) VALUES (
+		#{id},
+		#{paramid},
+		#{paramname},
+		#{paramvalue},
+		#{createBy.id},
+		#{createDate},
+		#{updateBy.id},
+		#{updateDate},
+		#{status},
+		#{remarks}
+		)
+	</insert>
+
+
+
+
+	<update id="updateSysParamByPid">
+		UPDATE sys_param SET
+		paramvalue = #{paramvalue}
+		WHERE paramid = #{paramid}
+	</update>
+
+	<update id="delete">
+		DELETE FROM sys_param
+		WHERE id = #{id}
+	</update>
+	<select id="qrySysParamByParamId" resultType="SysParam">
+		SELECT
+		<include refid="sysParamColumns" />
+		FROM sys_param a
+		<include refid="sysParamJoins" />
+		WHERE a.paramid = #{paramid} and a.status='1'
+	</select>
+	<select id="qrySysParamByPmId" resultType="SysParam">
+		SELECT
+		<include refid="sysParamColumns" />
+		FROM sys_param a
+		<include refid="sysParamJoins" />
+		WHERE a.paramid = #{paramid} and a.status='1'
+	</select>
+
+	<select id="queryUserInfoForUserTreeViewBack" resultType="User">
+		 select t.name FROM sys_user t WHERE t.id in (${name}) or t.`no` in (${name});
+	</select>
+	<select id="queryUserInfoForUserTreeViewBackOne" resultType="User">
+		 select t.name FROM sys_user t WHERE t.id in (#{name}) or t.`no` in (#{name});
+	</select>
+
+	<select id="queryUserInfoForUserTreeViewBackByNos" resultType="User">
+		select t.name FROM sys_user t
+		<where>
+			t.`no` in
+			<foreach collection="userNoList" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</where>
+	</select>
+
+
+
+</mapper>

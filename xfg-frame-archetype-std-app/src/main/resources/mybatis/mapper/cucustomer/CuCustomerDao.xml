@@ -1,0 +1,847 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xunfeng.cucustomer.infrastructure.dao.CuCustomerDao">
+
+    <!-- 客户信息字段 -->
+	<sql id="cuCustomerColumns">
+		a.id AS "id",
+		a.area_id AS "areaId",
+		a.province_id AS "provinceId",
+		a.city_id AS "cityId",
+		a.customer_type AS "customerType",
+		a.customer_name AS "customerName",
+		a.school_type AS "schoolType",
+		a.create_time AS "createTime",
+		a.company_type AS "companyType",
+		a.bus_line AS "busLine",
+		a.address AS "address",
+		a.cu_producttype_id AS "cuProducttypeId",
+		a.state AS "state",
+		a.lab_status AS "labStatus",
+		a.profession_describe AS "professionDescribe",
+		a.principal1 AS "principal1",
+		a.principal2 AS "principal2",
+		a.pursuit_time AS "pursuitTime",
+		a.legal_representative AS "legalRepresentative",
+		a.units_ic AS "unitsIc",
+		a.bank AS "bank",
+		a.account AS "account",
+		a.url AS "url",
+		a.main_business AS "mainBusiness",
+		a.sideline_business AS "sidelineBusiness",
+		a.billing_telephone AS "billingTelephone",
+		a.billing_address AS "billingAddress",
+		a.inputuser AS "inputuser",
+		a.tracedate AS "tracedate",
+		a.approval_opinions AS "approvalOpinions",
+		a.approver AS "approver",
+		a.approval_time AS "approvalTime",
+		a.approval_status AS "approvalStatus",
+		a.status AS "status",
+		a.create_by AS "createUser",
+		a.create_date,
+		a.update_by AS "updateBy.id",
+		a.update_date
+	</sql>
+
+	<sql id="cuCustomerJoins">
+	</sql>
+
+    <!-- 根据主键获取客户信息 -->
+	<select id="get" resultType="CuCustomer">
+		SELECT
+			a.id AS "id",
+			a.area_id AS "areaId",
+			a.province_id AS "provinceId",
+			a.city_id AS "cityId",
+			a.customer_type AS "customerType",
+			a.customer_name AS "customerName",
+			a.school_type AS "schoolType",
+			a.create_time AS "createTime",
+			a.company_type AS "companyType",
+			a.bus_line AS "busLine",
+			a.address AS "address",
+			a.cu_producttype_id AS "cuProducttypeId",
+			a.state AS "state",
+			a.lab_status AS "labStatus",
+			a.profession_describe AS "professionDescribe",
+			a.principal1 AS "principal1",
+			a.principal2 AS "principal2",
+			a.pursuit_time AS "pursuitTime",
+			a.legal_representative AS "legalRepresentative",
+			a.units_ic AS "unitsIc",
+			a.bank AS "bank",
+			a.account AS "account",
+			a.url AS "url",
+			a.main_business AS "mainBusiness",
+			a.sideline_business AS "sidelineBusiness",
+			a.billing_telephone AS "billingTelephone",
+			a.billing_address AS "billingAddress",
+			a.inputuser AS "inputuser",
+			a.tracedate AS "tracedate",
+			a.approval_opinions AS "approvalOpinions",
+		    a.approver AS "approver",
+			b.name AS "name",
+			a.approval_time AS "approvalTime",
+			a.approval_status AS "approvalStatus",
+			a.status AS "status",
+			a.create_by AS "createUser",
+			a.create_date,
+			a.update_by AS "updateBy.id",
+			a.update_date
+		FROM cu_customer a
+		left join (select id,name from sys_user group by id,name) b
+		on a.approver = b.id
+		WHERE a.id = #{id}
+	</select>
+
+	<!-- 根据主键ID查询客户信息 -->
+	<select id="getviewData" resultType="CuCustomer">
+		SELECT
+			a.id AS "id",
+			a.area_id AS "areaId",
+			a.province_id AS "provinceId",
+			a.city_id AS "cityId",
+			a.customer_type AS "customerType",
+			a.customer_name AS "customerName",
+			a.school_type AS "schoolType",
+			a.create_time AS "createTime",
+			a.company_type AS "companyType",
+			a.bus_line AS "busLine",
+			a.address AS "address",
+			a.cu_producttype_id AS "cuProducttypeId",
+			a.state AS "state",
+			a.lab_status AS "labStatus",
+			a.profession_describe AS "professionDescribe",
+			a.principal1 AS "principal1",
+			a.principal2 AS "principal2",
+			a.pursuit_time AS "pursuitTime",
+			a.legal_representative AS "legalRepresentative",
+			a.units_ic AS "unitsIc",
+			a.bank AS "bank",
+			a.account AS "account",
+			a.url AS "url",
+			a.main_business AS "mainBusiness",
+			a.sideline_business AS "sidelineBusiness",
+			a.billing_telephone AS "billingTelephone",
+			a.billing_address AS "billingAddress",
+			a.inputuser AS "inputuser",
+			a.tracedate AS "tracedate",
+			a.approval_opinions AS "approvalOpinions",
+			c.name AS "name",
+			a.approver AS "approver",
+			a.approval_time AS "approvalTime",
+			a.approval_status AS "approvalStatus",
+			a.status AS "status",
+			a.create_by AS "createUser",
+			a.create_date,
+			a.update_by AS "updateBy.id",
+			a.update_date,
+			d.name as provinceName,
+			e.name as cityName,
+			b.name as areaName
+		FROM cu_customer a
+		     LEFT JOIN (select id,name from sys_office group by id,name) b
+		     ON a.area_id = b.id
+			 LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) c
+			 ON a.approver = c.id
+		     LEFT JOIN (select id,name from sys_area group by id,name) d
+		     ON a.province_id = d.id
+		     LEFT JOIN (select id,name from sys_area group by id,name) e
+		     ON a.city_id = e.id
+		WHERE a.id = #{id}
+	</select>
+
+	<!-- 根据客户名称查询客户信息 -->
+	<select id="getByName" resultType="CuCustomer">
+        SELECT
+            <include refid="cuCustomerColumns"/>
+        FROM cu_customer a
+        <include refid="cuCustomerJoins"/>
+        where a.customer_name = #{customerName}
+    </select>
+
+	<!-- 查询客户信息列表(带分页) -->
+	<select id="findList" resultType="CuCustomer">
+		SELECT
+			a.id AS "id",
+			a.area_id AS "areaId",
+			a.province_id AS "provinceId",
+			a.city_id AS "cityId",
+			a.customer_type AS "customerType",
+			a.customer_name AS "customerName",
+			a.school_type AS "schoolType",
+			a.create_time AS "createTime",
+			a.company_type AS "companyType",
+			a.bus_line AS "busLine",
+			a.address AS "address",
+			a.cu_producttype_id AS "cuProducttypeId",
+			a.state AS "state",
+			a.lab_status AS "labStatus",
+			a.profession_describe AS "professionDescribe",
+			a.pursuit_time AS "pursuitTime",
+			a.legal_representative AS "legalRepresentative",
+			a.units_ic AS "unitsIc",
+			a.bank AS "bank",
+			a.account AS "account",
+			a.url AS "url",
+			a.main_business AS "mainBusiness",
+			a.sideline_business AS "sidelineBusiness",
+			a.billing_telephone AS "billingTelephone",
+			a.billing_address AS "billingAddress",
+			a.inputuser AS "inputuser",
+			a.tracedate AS "tracedate",
+			a.approval_opinions AS "approvalOpinions",
+			a.approver AS "approver",
+			a.approval_time AS "approvalTime",
+			a.approval_status AS "approvalStatus",
+			a.status AS "status",
+			a.create_by AS "createUser",
+			a.create_date,
+			a.update_by AS "updateBy.id",
+			a.update_date,
+			d.name as provinceName,
+			b.name as areaName,
+			e.name as cuProducttypeName,
+			(case when f.name is null then '' else CONCAT(f.login_name,'--',f.name) end) as principal1,
+			(case when g.name is null then '' else CONCAT(g.login_name,'--',g.name) end) as principal2
+		FROM cu_customer a
+		LEFT JOIN (select id,name,parent_ids from sys_office group by id,name,parent_ids) b
+	    ON a.area_id = b.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) c
+		ON a.approver = c.id
+	    LEFT JOIN (select id,name from sys_area group by id,name) d
+	    ON a.province_id = d.id
+	    LEFT JOIN (select id,name from cu_producttype group by id,name) e
+		ON a.cu_producttype_id = e.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) f
+		ON a.principal1 = f.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) g
+		ON a.principal2 = g.id
+		<where>
+
+		   <if test="dataSql != null and dataSql != ''">
+		       ${dataSql}
+		    </if>
+
+			<if test="customerName != null and customerName != ''">
+				AND a.customer_name LIKE
+					<if test="dbName == 'oracle'">'%'||#{customerName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{customerName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{customerName},'%')</if>
+			</if>
+			<if test="areaId != null and areaId != ''">
+				AND a.area_id = #{areaId}
+			</if>
+			<if test="provinceId != null and provinceId != ''">
+				AND a.province_id = #{provinceId}
+			</if>
+			<if test="cuProducttypeId != null and cuProducttypeId != ''">
+				AND a.cu_producttype_id like concat('%',#{cuProducttypeId},'%')
+			</if>
+			<if test="schoolType != null and schoolType != ''">
+				AND a.school_type = #{schoolType}
+			</if>
+			<if test="principal1 != null and principal1 != ''">
+				AND ((f.login_name = #{principal1} or f.name like
+				        <if test="dbName == 'oracle'">'%'||#{principal1}||'%'</if>
+						<if test="dbName == 'mssql'">'%'+#{principal1}+'%'</if>
+						<if test="dbName == 'mysql'">concat('%',#{principal1},'%')</if>
+				    ) or
+				    (g.login_name = #{principal1} or g.name like
+				        <if test="dbName == 'oracle'">'%'||#{principal1}||'%'</if>
+						<if test="dbName == 'mssql'">'%'+#{principal1}+'%'</if>
+						<if test="dbName == 'mysql'">concat('%',#{principal1},'%')</if>
+				    ))
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			<if test="approvalStatus != null and approvalStatus != ''">
+				AND a.approval_status = #{approvalStatus}
+			</if>
+			<if test="companyType != null and companyType != ''">
+				AND a.customer_type = #{companyType}
+			</if>
+			<!-- 判断该用户为教育事业部员工 -->
+			<if test="userType != null and userType != '' and userType == 1">
+				<!-- 判断为领导，查询该部门的数据 -->
+				<if test="userMaster != null and userMaster != '' and userMaster == 0">
+				    AND ((b.id = #{officeId} or b.parent_ids like
+				        <if test="dbName == 'oracle'">'%'||#{officeId}||'%'</if>
+						<if test="dbName == 'mssql'">'%'+#{officeId}+'%'</if>
+						<if test="dbName == 'mysql'">concat('%',#{officeId},'%')</if>
+				       ) )
+				</if>
+				<!-- 判断为员工，查询该本人的数据 -->
+				<if test="userMaster != null and userMaster != '' and userMaster == 1">
+					AND (a.principal1 = #{createBy.id} OR a.principal2 = #{createBy.id})
+				</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			    ORDER BY a.update_date DESC
+				limit #{startIndex},#{pageSize}
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 查询客户信息数量 -->
+	<select id="findList2Count" resultType="Integer">
+        SELECT
+            count(1)
+        FROM cu_customer a
+		LEFT JOIN (select id,name,parent_ids from sys_office group by id,name,parent_ids) b
+	    ON a.area_id = b.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) c
+		ON a.approver = c.id
+	    LEFT JOIN (select id,name from sys_area group by id,name) d
+	    ON a.province_id = d.id
+	    LEFT JOIN (select id,name from cu_producttype group by id,name) e
+		ON a.cu_producttype_id = e.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) f
+		ON a.principal1 = f.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) g
+		ON a.principal2 = g.id
+        <where>
+
+           <if test="dataSql != null and dataSql != ''">
+		       ${dataSql}
+		    </if>
+
+            <if test="customerName != null and customerName != ''">
+				AND a.customer_name LIKE
+					<if test="dbName == 'oracle'">'%'||#{customerName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{customerName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{customerName},'%')</if>
+			</if>
+			<if test="areaId != null and areaId != ''">
+				AND a.area_id = #{areaId}
+			</if>
+			<if test="provinceId != null and provinceId != ''">
+				AND a.province_id = #{provinceId}
+			</if>
+			<if test="cuProducttypeId != null and cuProducttypeId != ''">
+				AND a.cu_producttype_id LIKE concat('%',#{cuProducttypeId},'%')
+			</if>
+			<if test="schoolType != null and schoolType != ''">
+				AND a.school_type = #{schoolType}
+			</if>
+			<if test="principal1 != null and principal1 != ''">
+				AND ((f.login_name = #{principal1} or f.name like
+				        <if test="dbName == 'oracle'">'%'||#{principal1}||'%'</if>
+						<if test="dbName == 'mssql'">'%'+#{principal1}+'%'</if>
+						<if test="dbName == 'mysql'">concat('%',#{principal1},'%')</if>
+				    ) or
+				    (g.login_name = #{principal1} or g.name like
+				        <if test="dbName == 'oracle'">'%'||#{principal1}||'%'</if>
+						<if test="dbName == 'mssql'">'%'+#{principal1}+'%'</if>
+						<if test="dbName == 'mysql'">concat('%',#{principal1},'%')</if>
+				    ))
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			<if test="approvalStatus != null and approvalStatus != ''">
+				AND a.approval_status = #{approvalStatus}
+			</if>
+			<if test="companyType != null and companyType != ''">
+				AND a.customer_type = #{companyType}
+			</if>
+			<!-- 判断该用户为教育事业部员工 -->
+			<if test="userType != null and userType != '' and userType == 1">
+				<!-- 判断为领导，查询该部门的数据 -->
+				<if test="userMaster != null and userMaster != '' and userMaster == 0">
+				    AND ((b.id = #{officeId} or b.parent_ids like
+				        <if test="dbName == 'oracle'">'%'||#{officeId}||'%'</if>
+						<if test="dbName == 'mssql'">'%'+#{officeId}+'%'</if>
+						<if test="dbName == 'mysql'">concat('%',#{officeId},'%')</if>
+				       ) )
+				</if>
+				<!-- 判断为员工，查询该本人的数据 -->
+				<if test="userMaster != null and userMaster != '' and userMaster == 1">
+					<!-- AND a.principal1 = #{createBy.id} -->
+					AND (a.principal1 = #{createBy.id} OR a.principal2 = #{createBy.id})
+				</if>
+			</if>
+        </where>
+    </select>
+
+    <!-- 查询客户信息待审批列表 -->
+    <select id="findApproverList" resultType="CuCustomer">
+		SELECT
+			a.id AS "id",
+			a.area_id AS "areaId",
+			a.province_id AS "provinceId",
+			a.city_id AS "cityId",
+			a.customer_type AS "customerType",
+			a.customer_name AS "customerName",
+			a.school_type AS "schoolType",
+			a.create_time AS "createTime",
+			a.company_type AS "companyType",
+			a.bus_line AS "busLine",
+			a.address AS "address",
+			a.cu_producttype_id AS "cuProducttypeId",
+			a.state AS "state",
+			a.lab_status AS "labStatus",
+			a.profession_describe AS "professionDescribe",
+			a.pursuit_time AS "pursuitTime",
+			a.legal_representative AS "legalRepresentative",
+			a.units_ic AS "unitsIc",
+			a.bank AS "bank",
+			a.account AS "account",
+			a.url AS "url",
+			a.main_business AS "mainBusiness",
+			a.sideline_business AS "sidelineBusiness",
+			a.billing_telephone AS "billingTelephone",
+			a.billing_address AS "billingAddress",
+			a.inputuser AS "inputuser",
+			a.tracedate AS "tracedate",
+			a.approval_opinions AS "approvalOpinions",
+			a.approver AS "approver",
+			a.approval_time AS "approvalTime",
+			a.approval_status AS "approvalStatus",
+			a.status AS "status",
+			a.create_by AS "createUser",
+			a.create_date,
+			a.update_by AS "updateBy.id",
+			a.update_date,
+			d.name as provinceName,
+			b.name as areaName,
+			e.name as cuProducttypeName,
+			(case when f.name is null then '' else CONCAT(f.login_name,'--',f.name) end) as principal1,
+			(case when g.name is null then '' else CONCAT(g.login_name,'--',g.name) end) as principal2
+		FROM cu_customer a
+		LEFT JOIN (select id,name,parent_ids from sys_office group by id,name,parent_ids) b
+	    ON a.area_id = b.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) c
+		ON a.approver = c.id
+	    LEFT JOIN (select id,name from sys_area group by id,name) d
+	    ON a.province_id = d.id
+	    LEFT JOIN (select id,name from cu_producttype group by id,name) e
+		ON a.cu_producttype_id = e.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) f
+		ON a.principal1 = f.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) g
+		ON a.principal2 = g.id
+	    <where>
+	    	 AND a.customer_type = 1
+	    	 AND a.approver = #{createBy.id}
+	    	 <if test="customerName != null and customerName != ''">
+				AND a.customer_name LIKE
+					<if test="dbName == 'oracle'">'%'||#{customerName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{customerName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{customerName},'%')</if>
+			</if>
+			<if test="areaId != null and areaId != ''">
+				AND a.area_id = #{areaId}
+			</if>
+			<if test="provinceId != null and provinceId != ''">
+				AND a.province_id = #{provinceId}
+			</if>
+			<if test="cuProducttypeId != null and cuProducttypeId != ''">
+				AND a.cu_producttype_id like concat('%',#{cuProducttypeId},'%')
+			</if>
+			<if test="schoolType != null and schoolType != ''">
+				AND a.school_type = #{schoolType}
+			</if>
+			<if test="principal1 != null and principal1 != ''">
+				AND ((f.login_name = #{principal1} or f.name like
+				        <if test="dbName == 'oracle'">'%'||#{principal1}||'%'</if>
+						<if test="dbName == 'mssql'">'%'+#{principal1}+'%'</if>
+						<if test="dbName == 'mysql'">concat('%',#{principal1},'%')</if>
+				    ) or
+				    (g.login_name = #{principal1} or g.name like
+				        <if test="dbName == 'oracle'">'%'||#{principal1}||'%'</if>
+						<if test="dbName == 'mssql'">'%'+#{principal1}+'%'</if>
+						<if test="dbName == 'mysql'">concat('%',#{principal1},'%')</if>
+				    ))
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			<if test="approvalStatus != null and approvalStatus != ''">
+				AND a.approval_status = #{approvalStatus}
+			</if>
+			<if test="companyType != null and companyType != ''">
+				AND a.customer_type = #{companyType}
+			</if>
+			<if test="officeId != null and officeId != ''">
+			    AND (b.id = #{officeId} or b.parent_ids like
+			        <if test="dbName == 'oracle'">'%'||#{officeId}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{officeId}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{officeId},'%')</if>
+			    )
+			</if>
+	    </where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			    ORDER BY a.create_date DESC
+				limit #{startIndex},#{pageSize}
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 查询客户信息待审批数量 -->
+	<select id="findListApproverCount" resultType="Integer">
+        SELECT
+            count(1)
+        FROM cu_customer a
+		LEFT JOIN (select id,name,parent_ids from sys_office group by id,name,parent_ids) b
+	    ON a.area_id = b.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) c
+		ON a.approver = c.id
+	    LEFT JOIN (select id,name from sys_area group by id,name) d
+	    ON a.province_id = d.id
+	    LEFT JOIN (select id,name from cu_producttype group by id,name) e
+		ON a.cu_producttype_id = e.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) f
+		ON a.principal1 = f.id
+		LEFT JOIN (select id,login_name,name from sys_user group by id,login_name,name) g
+		ON a.principal2 = g.id
+        <where>
+	    	 AND a.customer_type = 1
+	    	 AND a.approver = #{createBy.id}
+			<if test="customerName != null and customerName != ''">
+				AND a.customer_name LIKE
+					<if test="dbName == 'oracle'">'%'||#{customerName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{customerName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{customerName},'%')</if>
+			</if>
+			<if test="areaId != null and areaId != ''">
+				AND a.area_id = #{areaId}
+			</if>
+			<if test="provinceId != null and provinceId != ''">
+				AND a.province_id = #{provinceId}
+			</if>
+			<if test="cuProducttypeId != null and cuProducttypeId != ''">
+				AND a.cu_producttype_id = #{cuProducttypeId}
+			</if>
+			<if test="schoolType != null and schoolType != ''">
+				AND a.school_type = #{schoolType}
+			</if>
+			<if test="principal1 != null and principal1 != ''">
+				AND ((f.login_name = #{principal1} or f.name like
+				        <if test="dbName == 'oracle'">'%'||#{principal1}||'%'</if>
+						<if test="dbName == 'mssql'">'%'+#{principal1}+'%'</if>
+						<if test="dbName == 'mysql'">concat('%',#{principal1},'%')</if>
+				    ) or
+				    (g.login_name = #{principal1} or g.name like
+				        <if test="dbName == 'oracle'">'%'||#{principal1}||'%'</if>
+						<if test="dbName == 'mssql'">'%'+#{principal1}+'%'</if>
+						<if test="dbName == 'mysql'">concat('%',#{principal1},'%')</if>
+				    ))
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			<if test="approvalStatus != null and approvalStatus != ''">
+				AND a.approval_status = #{approvalStatus}
+			</if>
+			<if test="companyType != null and companyType != ''">
+				AND a.customer_type = #{companyType}
+			</if>
+			<if test="officeId != null and officeId != ''">
+			    AND (b.id = #{officeId} or b.parent_ids like
+			        <if test="dbName == 'oracle'">'%'||#{officeId}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{officeId}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{officeId},'%')</if>
+			    )
+			</if>
+	    </where>
+    </select>
+
+	<!-- 查询所有客户信息列表 -->
+	<select id="findAllList" resultType="CuCustomer">
+		SELECT
+			<include refid="cuCustomerColumns"/>
+		FROM cu_customer a
+		<include refid="cuCustomerJoins"/>
+		<where>
+
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 新增客户信息 -->
+	<insert id="insert">
+		INSERT INTO cu_customer(
+			id,
+			area_id,
+			province_id,
+		    city_id,
+			customer_type,
+			customer_name,
+			school_type,
+			create_time,
+			company_type,
+			bus_line,
+			address,
+			cu_producttype_id,
+			state,
+			lab_status,
+			profession_describe,
+			principal1,
+			principal2,
+			pursuit_time,
+			legal_representative,
+			units_ic,
+			bank,
+			account,
+			url,
+			main_business,
+			sideline_business,
+			billing_telephone,
+			billing_address,
+			inputuser,
+			tracedate,
+			approval_opinions,
+			approver,
+			approval_time,
+			approval_status,
+			status,
+			create_by,
+		    create_date,
+		    update_by,
+		    update_date
+		) VALUES (
+			#{id},
+			#{areaId},
+			#{provinceId},
+		    #{cityId},
+			#{customerType},
+			#{customerName},
+			#{schoolType},
+			#{createTime},
+			#{companyType},
+			#{busLine},
+			#{address},
+			#{cuProducttypeId},
+			#{state},
+			#{labStatus},
+			#{professionDescribe},
+			#{principal1},
+			#{principal2},
+			#{pursuitTime},
+			#{legalRepresentative},
+			#{unitsIc},
+			#{bank},
+			#{account},
+			#{url},
+			#{mainBusiness},
+			#{sidelineBusiness},
+			#{billingTelephone},
+			#{billingAddress},
+			#{inputuser},
+			#{tracedate},
+			#{approvalOpinions},
+			#{approver},
+			#{approvalTime},
+			#{approvalStatus},
+			#{status},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate}
+		)
+	</insert>
+
+	<!-- 修改客户信息 -->
+	<update id="update">
+		UPDATE cu_customer SET
+		    area_id = #{areaId},
+		    province_id = #{provinceId},
+		    city_id = #{cityId},
+			customer_type = #{customerType},
+			customer_name = #{customerName},
+			school_type = #{schoolType},
+			create_time = #{createTime},
+			company_type = #{companyType},
+			bus_line = #{busLine},
+			address = #{address},
+			cu_producttype_id = #{cuProducttypeId},
+			state = #{state},
+			lab_status = #{labStatus},
+			profession_describe = #{professionDescribe},
+			principal1 = #{principal1},
+			principal2 = #{principal2},
+			pursuit_time = #{pursuitTime},
+			legal_representative = #{legalRepresentative},
+			units_ic = #{unitsIc},
+			bank = #{bank},
+			account = #{account},
+			url = #{url},
+			main_business = #{mainBusiness},
+			sideline_business = #{sidelineBusiness},
+			billing_telephone = #{billingTelephone},
+			billing_address = #{billingAddress},
+			inputuser = #{inputuser},
+			tracedate = #{tracedate},
+			approval_opinions = #{approvalOpinions},
+			approver = #{approver},
+			approval_time = #{approvalTime},
+			approval_status = #{approvalStatus},
+			status = #{status},
+		    update_by = #{updateBy.id},
+		    update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+
+	<!-- 修改负责人 -->
+	<update id="modifyPrincipal" parameterType="java.util.List">
+		UPDATE cu_customer SET
+			<if test="list[0].principal1 != null and list[0].principal1 != ''">
+				principal1 = #{list[0].principal1},
+			</if>
+			<if test="list[0].principal2 != null and list[0].principal2 != ''">
+				principal2 = #{list[0].principal2},
+			</if>
+			update_by = #{list[0].updateBy.id},
+		    update_date = #{list[0].updateDate}
+		WHERE id IN
+		<foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+		#{item.id}
+		</foreach>
+	</update>
+
+	<!-- 根据主键ID删除客户信息 -->
+	<delete id="delete">
+		DELETE FROM cu_customer
+		WHERE id = #{id}
+	</delete>
+
+	<!-- 批量删除客户信息 -->
+	<delete id="batchDelete" parameterType="java.util.List">
+		DELETE FROM cu_customer
+		WHERE id in
+		 <foreach collection="list" item="item" index="index" open="(" separator="," close=")">
+		#{item.id}
+		</foreach>
+	</delete>
+
+	<!-- 批量审批客户信息 -->
+	<update id="batchApprovalcuCustomer" parameterType="java.util.List">
+	    update cu_customer
+	    <trim prefix="set" suffixOverrides=",">
+	        <trim prefix="approval_status =case" suffix="end,">
+	            <foreach collection="list" item="i" index="index">
+	                <if test="i.approvalStatus!=null">
+	                    when id=#{i.id} then #{i.approvalStatus}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" approver =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.approver!=null">
+	                    when id=#{i.id} then #{i.approver}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" approval_time =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.approvalTime!=null">
+	                    when id=#{i.id} then #{i.approvalTime}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" approval_opinions =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.approvalOpinions!=null">
+	                    when id=#{i.id} then #{i.approvalOpinions}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" update_by =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.updateBy!=null">
+	                    when id=#{i.id} then #{i.updateBy.id}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" update_date =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.updateDate!=null">
+	                    when id=#{i.id} then #{i.updateDate}
+	                </if>
+	            </foreach>
+	        </trim>
+	    </trim>
+	    where
+	    <foreach collection="list" separator="or" item="i" index="index">
+	        id=#{i.id}
+	    </foreach>
+	</update>
+
+	<!-- 根据客户ID查询项目合作详情列表  -->
+	<select  id="findProjectList" resultType="CuCustomer">
+		SELECT
+			a.project_name AS "projectName",
+			o2.name AS "officeName",
+			u1.name AS "name",
+			a.project_begintime AS "projectBegintime",
+			a.project_endtime AS "projectEndtime",
+			p.label AS "label"
+		FROM purch_project_info a
+	    	LEFT JOIN (select id,name from sys_office group by id,name) o2 ON o2.id = a.office_id
+			LEFT JOIN (select value,label,type from sys_dict group by value,label,type) p ON p.value = a.status
+			LEFT JOIN (select value,label,type from sys_dict group by value,label,type) p1 ON p1.value = a.project_type
+			LEFT JOIN (select id,name from sys_user group by id,name) u1 ON u1.id = a.project_manager
+		where a.customer_id = #{id}
+    		and p1.type ='Project_Type'
+   		 	and p.type ='Project_Status'
+		    order by a.project_begintime desc
+	</select>
+
+	<!-- 根据工号查询是否拥有教育事业部总监角色权限 -->
+     <select id="getMajordomo" resultType="Integer" parameterType="User">
+     	select count(distinct a.id) from sys_user a
+			left join (select user_id,role_id from sys_user_role group by user_id,role_id) b
+			on a.id = b.user_id
+			left join (select role_id,menu_id from sys_role_menu group by role_id,menu_id) c
+			on b.role_id = c.role_id
+			left join (select id from sys_menu group by id) d
+			on c.menu_id = d.id
+			where d.id = 'a1e0d3ef05c34952918a7774c8af38a9' and a.id = #{id}
+     </select>
+
+   	<!-- 根据客户名称和类型查询客户信息 -->
+	<select id="getByNameAndType" resultType="CuCustomer">
+        SELECT
+            <include refid="cuCustomerColumns"/>
+        FROM cu_customer a
+        <include refid="cuCustomerJoins"/>
+        where a.customer_name = #{customerName}
+		<if test="customerType != null and customerType != ''">
+			AND a.customer_type = #{customerType}
+        </if>
+		<if test="status != null and status != ''">
+			AND a.status = #{status}
+        </if>
+    </select>
+
+	<update id="updataUnitInfo">
+		UPDATE cu_customer
+		<trim prefix="set" suffixOverrides=",">
+			units_ic = #{unitsIc},
+			<if test="address !=null and address != ''">address = #{address},</if>
+			<if test="billingTelephone !=null and billingTelephone != ''">billing_telephone = #{billingTelephone},</if>
+			<if test="bank !=null and bank != ''">bank = #{bank},</if>
+			<if test="account !=null and account != ''">account = #{account}</if>
+		</trim>
+		where id = #{id}
+	</update>
+
+</mapper>

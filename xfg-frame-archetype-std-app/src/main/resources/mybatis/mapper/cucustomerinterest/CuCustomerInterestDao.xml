@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xunfeng.cucustomer.infrastructure.dao.CuCustomerInterestDao">
+
+    <!-- 客户兴趣信息字段 -->
+	<sql id="cuCustomerInterestColumns">
+		a.id AS "id",
+		a.cu_interest_id AS "cuInterestId",
+		a.cu_customer_linkman_id AS "cuCustomerLinkmanId"
+	</sql>
+
+	<sql id="cuCustomerInterestJoins">
+	</sql>
+
+    <!-- 根据主键ID获取客户兴趣信息 -->
+	<select id="get" resultType="CuCustomerInterest">
+		SELECT
+			<include refid="cuCustomerInterestColumns"/>
+		FROM cu_customer_interest a
+		<include refid="cuCustomerInterestJoins"/>
+		WHERE a.id = #{id}
+	</select>
+
+	<!-- 获取客户兴趣信息列表(带分页) -->
+	<select id="findList" resultType="CuCustomerInterest">
+		SELECT
+			<include refid="cuCustomerInterestColumns"/>
+		FROM cu_customer_interest a
+		<include refid="cuCustomerInterestJoins"/>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				limit #{startIndex},#{pageSize}
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 获取客户兴趣信息数量 -->
+	<select id="findList2Count" resultType="Integer">
+        SELECT
+            count(1)
+        FROM cu_customer_interest a
+        <include refid="cuCustomerInterestJoins"/>
+    </select>
+
+	<!-- 获取客户兴趣信息列表 -->
+	<select id="findAllList" resultType="CuCustomerInterest">
+		SELECT
+			<include refid="cuCustomerInterestColumns"/>
+		FROM cu_customer_interest a
+		<include refid="cuCustomerInterestJoins"/>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 插入客户兴趣信息 -->
+	<insert id="insert">
+		INSERT INTO cu_customer_interest(
+			id,
+			cu_interest_id,
+			cu_customer_linkman_id
+		) VALUES (
+			#{id},
+			#{cuInterestId},
+			#{cuCustomerLinkmanId}
+		)
+	</insert>
+
+	<!-- 更新客户兴趣信息 -->
+	<update id="update">
+		UPDATE cu_customer_interest SET
+			cu_interest_id = #{cuInterestId},
+			cu_customer_linkman_id = #{cuCustomerLinkmanId}
+		WHERE id = #{id}
+	</update>
+
+	<!-- 根据主键删除客户兴趣信息 -->
+	<delete id="delete">
+		DELETE FROM cu_customer_interest
+		WHERE id = #{id}
+	</delete>
+
+	<!-- 根据客户ID查询客户兴趣信息 -->
+	<select id="getByCustomerId" resultType="CuCustomerInterest">
+		SELECT
+			a.id AS "id",
+			a.cu_interest_id AS "cuInterestId",
+			a.cu_customer_linkman_id AS "cuCustomerLinkmanId",
+			b.name as "cuInterestName"
+		FROM cu_customer_interest a
+		     LEFT JOIN (select id,name from cu_interest group by id,name) b
+		     ON a.cu_interest_id = b.id
+		WHERE a.cu_customer_linkman_id in (
+		   select id from cu_customer_linkman where cu_customer_id = #{cuCustomerId}
+		)
+	</select>
+
+	<!-- 批量插入客户兴趣信息 -->
+	<insert id="batchInsert" parameterType="java.util.List">
+		INSERT INTO cu_customer_interest(
+			id,
+			cu_interest_id,
+			cu_customer_linkman_id
+		) VALUES
+	  <foreach collection="list" index ="index" item ="item" separator=",">
+		(
+			#{item.id},
+			#{item.cuInterestId},
+			#{item.cuCustomerLinkmanId}
+		)
+	</foreach>
+	</insert>
+
+	<!-- 批量更新客户兴趣信息 -->
+	<update id="batchUpdate" parameterType="java.util.List">
+	    update cu_customer_interest
+	    <trim prefix="set" suffixOverrides=",">
+	        <trim prefix=" cu_interest_id =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.cuInterestId!=null">
+	                    when id=#{i.id} then #{i.cuInterestId}
+	                </if>
+	            </foreach>
+	        </trim>
+	        <trim prefix=" cu_customer_linkman_id =case"  suffix="end,">
+	            <foreach collection="list" item="i"  index="index">
+	                <if test="i.cuCustomerLinkmanId!=null">
+	                    when id=#{i.id} then #{i.cuCustomerLinkmanId}
+	                </if>
+	            </foreach>
+	        </trim>
+	    </trim>
+	    where
+	    <foreach collection="list" separator="or" item="i" index="index">
+	        id=#{i.id}
+	    </foreach>
+	</update>
+
+	<!-- 根据客户ID删除客户兴趣信息 -->
+	<delete id="deleteByCustomerId">
+		DELETE FROM cu_customer_interest
+		WHERE cu_customer_linkman_id in (
+		   select id from cu_customer_linkman where cu_customer_id = #{cuCustomerId}
+		)
+	</delete>
+
+</mapper>

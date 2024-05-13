@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xunfeng.cucustomer.infrastructure.dao.SysUserRoleDao">
+
+	<sql id="sysUserRoleColumns">
+		a.user_id AS "user.id",
+		a.role_id AS "roleId",
+		a.start_date AS "startDate",
+		a.end_date AS "endDate",
+		a.status AS "status",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.del_flag AS "delFlag",
+		a.remark AS "remark",
+		a.flag AS "flag",
+		u1.name AS "user.name",
+		r1.name AS  "role.name",
+		r1.role_type AS "role.roleType"
+	</sql>
+
+	<sql id="sysUserRoleJoins">
+		LEFT JOIN sys_user u1 ON u1.id = a.user_id
+		LEFT JOIN sys_role r1 ON r1.id = a.role_id
+	</sql>
+	<delete id="deleteCRMRole">
+		delete from sys_user_role WHERE  user_id = #{userid}
+			 and role_id in (SELECT `value` FROM sys_dict WHERE type = 'deleteCRMRole' )
+	</delete>
+
+	<select id="get" resultType="SysUserRole">
+		SELECT
+			<include refid="sysUserRoleColumns"/>
+		FROM sys_user_role a
+		<include refid="sysUserRoleJoins"/>
+		WHERE a.id = #{id}
+	</select>
+
+		<select id="getUserRoleListByRoleId" resultType="SysUserRole">
+		SELECT
+			<include refid="sysUserRoleColumns"/>
+		FROM sys_user_role a
+		<include refid="sysUserRoleJoins"/>
+		WHERE a.role_id = #{roleId}
+	</select>
+
+
+
+	<select id="findList" resultType="SysUserRole">
+		SELECT
+			<include refid="sysUserRoleColumns"/>
+		FROM sys_user_role a
+		<include refid="sysUserRoleJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="user != null and user.id != null and user.id != ''">
+				AND a.user_id = #{user.id}
+			</if>
+			<if test="roleId != null and roleId != ''">
+				AND a.role_id = #{roleId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+				limit #{startIndex},#{pageSize}
+			</otherwise>
+		</choose>
+	</select>
+
+
+	<select id="findList2Count" resultType="Integer">
+        SELECT
+            count(1)
+        FROM sys_user_role a
+        <include refid="sysUserRoleJoins"/>
+        <where>
+            a.del_flag = #{DEL_FLAG_NORMAL}
+            <if test="user != null and user.id != null and user.id != ''">
+                AND a.user_id = #{user.id}
+            </if>
+            <if test="roleId != null and roleId != ''">
+                AND a.role_id = #{roleId}
+            </if>
+        </where>
+    </select>
+
+	<select id="findAllList" resultType="SysUserRole">
+		SELECT
+			<include refid="sysUserRoleColumns"/>
+		FROM sys_user_role a
+		<include refid="sysUserRoleJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+
+
+	<select id="getUserRoleList" resultType="SysUserRole" parameterType="java.util.Map">
+	     SELECT
+          <include refid="sysUserRoleColumns"/>
+            FROM sys_user_role a
+          <include refid="sysUserRoleJoins"/>
+          <where>
+            and a.user_id = #{userId}
+			  <if test="DEL_FLAG_NORMAL != null and DEL_FLAG_NORMAL != ''">
+				  and a.del_flag = #{DEL_FLAG_NORMAL}
+			  </if>
+			  <if test="STATUS_VALIDATE != null and STATUS_VALIDATE != ''">
+				  and a.status = #{STATUS_VALIDATE}
+			  </if>
+            AND now() between IFNULL(start_date,now()) and IFNULL(end_date,NOW())
+        </where>
+    </select>
+
+
+   <sql id="sysUserRoleColumnsV2">
+       u.id AS "user.id",
+       a.id AS "roleId",
+       u.name AS "user.name",
+       a.name AS  "role.name",
+       a.id  AS "role.id",
+       a.enname AS "role.enname",
+       a.role_type AS "role.roleType",
+       a.data_scope AS "role.dataScope"
+   </sql>
+   <select id="getUserRoleListV2" resultType="SysUserRole">
+    select * from  (
+                SELECT <include refid="sysUserRoleColumnsV2"/>
+                     FROM sys_role a
+                         LEFT JOIN  sys_office o ON o.id = a.office_id
+                         LEFT JOIN  sys_user_role ur on ur.role_id=a.id
+                         LEFT JOIN sys_user u ON u.id = ur.user_id
+                     WHERE  a.del_flag = #{DEL_FLAG_NORMAL}
+                         AND u.id = #{userId}
+	                     AND status='1'
+	                     AND now() between ifnull(ur.start_date, now()) and ifnull(ur.end_date, now())
+	                     AND ur.flag='1'
+                UNION
+                SELECT <include refid="sysUserRoleColumnsV2"/>
+                    from sys_role a
+                    LEFT JOIN  sys_office o ON o.id = a.office_id
+                    LEFT JOIN  sys_group_role gr  on gr.role_id = a.id
+                    LEFT JOIN   sys_user_group ugr on ugr.group_id=gr.group_id
+                    LEFT JOIN sys_user u ON u.id = ugr.user_id
+                    WHERE   a.del_flag = #{DEL_FLAG_NORMAL}
+                    AND  gr.status='1'
+                    AND  u.id = #{userId}
+                    AND now() between ifnull(gr.start_date, now()) and ifnull(gr.end_date, now())
+                UNION
+                SELECT <include refid="sysUserRoleColumnsV2"/>
+                FROM sys_role a
+                    LEFT JOIN  sys_office o ON o.id = a.office_id
+                    LEFT JOIN  sys_position_role pr  on pr.role_id=a.id
+                    LEFT JOIN  hr_employee_position ep on ep.pos_id=pr.pos_id
+                    LEFT JOIN   sys_user u on u.`no`=ep.emp_no
+                    where  a.del_flag = #{DEL_FLAG_NORMAL}
+                    AND  u.id = #{userId}
+                ) user_add_role   LEFT JOIN ( SELECT <include refid="sysUserRoleColumnsV2"/>
+                                             FROM sys_role a
+                                             LEFT JOIN  sys_office o ON o.id = a.office_id
+                                             LEFT JOIN  sys_user_role ur on ur.role_id=a.id
+                                             LEFT JOIN sys_user u ON u.id = ur.user_id
+                                             WHERE  a.del_flag = #{DEL_FLAG_NORMAL}
+                                             AND  u.id = #{userId}
+                                             AND status='1'
+                                             AND now() between ifnull(ur.start_date, now()) and ifnull(ur.end_date, now())
+                                             AND ur.flag='0')
+               user_del_role  using (roleId)
+               WHERE user_del_role.roleId is null
+    </select>
+
+	<insert id="insert">
+		INSERT INTO sys_user_role(
+			user_id,
+			role_id,
+			start_date,
+			end_date,
+			status,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			del_flag,
+			remark,
+			flag
+		) VALUES (
+			#{user.id},
+			#{roleId},
+			#{startDate},
+			#{endDate},
+			#{status},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{delFlag},
+			#{remark},
+			#{flag}
+		)
+	</insert>
+	<insert id="insertBatch"  >
+	   INSERT INTO sys_user_role(
+            user_id,
+            role_id,
+            start_date,
+            end_date,
+            status,
+            create_by,
+            create_date,
+            update_by,
+            update_date,
+            del_flag,
+            remark,
+            flag
+        )
+        VALUES
+        <foreach collection="list" item="item"  separator=",">
+         (#{item.user.id},
+            #{item.roleId},
+            #{item.startDate},
+            #{item.endDate},
+            #{item.status},
+            #{item.createBy.id},
+            #{item.createDate},
+            #{item.updateBy.id},
+            #{item.updateDate},
+            #{item.delFlag},
+            #{item.remark},
+            #{item.flag})
+	   </foreach>
+	</insert>
+	<update id="update">
+		UPDATE sys_user_role SET
+			start_date = #{startDate},
+			end_date = #{endDate},
+			status = #{status},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+
+	<update id="delete">
+		UPDATE sys_user_role SET
+			del_flag = #{DEL_FLAG_DELETE},
+			update_id = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+
+	<update id="deleteUserRole">
+        UPDATE sys_user_role SET
+            del_flag = #{DEL_FLAG_DELETE},
+            status   = #{STATUS_INVALIDATE},
+            update_by = #{updateBy.id},
+            update_date = #{updateDate}
+        WHERE user_id = #{user.id}
+              AND role_id = #{roleId}
+    </update>
+
+</mapper>
